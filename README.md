@@ -6,11 +6,12 @@ A Python web scraper for extracting FAQ Q&A content from the E& B2B Business Onl
 
 - Automated browser-based scraping using Selenium WebDriver
 - Navigates through category pages and expands accordion-style FAQs
+- **Complete answer extraction** including bullet points, numbered lists, and multiple paragraphs
+- **Flexible category matching** with alternative URL navigation for robust scraping
 - Extracts questions and answers organized by category and subcategory
 - Real-time progress saving after each FAQ extraction
 - Exports data to JSON format with hierarchical structure
 - Headless Chrome execution for background processing
-- Error handling and retry mechanisms
 
 ## Categories Scraped
 
@@ -56,9 +57,18 @@ pip install -r requirements.txt
 - Python 3.7+
 - selenium>=4.15.0
 - Chrome browser (latest version recommended)
-- ChromeDrr will:
+- ChromeDriver (automatically managed by Selenium)
+
+## Usage
+
+Run the scraper:
+```bash
+python scraper.py
+```
+
+The scraper will:
 1. Load the E& B2B support portal main page
-2. Navigate through each category by clicking "See More" buttons
+2. Navigate through each category by clicking "See More" buttons (with fallback to direct URLs)
 3. Extract all FAQ questions and answers from accordion elements
 4. Save progress incrementally to `eand_support.json`
 5. Display real-time progress in the console
@@ -86,11 +96,23 @@ The output JSON file contains an array of objects with the following structure:
 ## How It Works
 
 1. **Navigation**: Uses Selenium to load the main support page and interact with JavaScript-rendered content
-2. **Category Selection**: Finds and clicks "See More" links for each category
+2. **Category Selection**: 
+   - Attempts flexible matching to find and click "See More" links for each category
+   - Falls back to direct URL construction if button navigation fails
 3. **FAQ Extraction**: On category pages, locates all accordion items (`.accordion-button`)
-4. **Content Extraction**: Expands each accordion and extracts question from the button and answer from `.accordion-body`
+4. **Content Extraction**: 
+   - Expands each accordion element
+   - Extracts questions from the button text
+   - Extracts answers from ALL `.eand-paragraph` divs in `.accordion-body`
+   - Preserves formatting for bullet points, numbered lists, and multiple paragraphs
 5. **Data Organization**: Groups FAQs by category and subcategory (h5 headings)
 6. **Progress Saving**: Saves to JSON after each successful FAQ extraction
+
+## Recent Fixes
+
+- **Complete Answer Extraction**: Fixed issue where bullet points and list items were not captured. Now extracts all paragraph divs in the accordion body.
+- **Category Navigation**: Improved category matching with flexible word-based matching and alternative URL navigation to handle all categories successfully.
+- **List Formatting**: Properly formats bullet points (•) and numbered lists in extracted answers.
 
 ## Troubleshooting
 
@@ -114,16 +136,6 @@ pip install selenium
 - Includes delays between actions to ensure page content loads properly
 - Automatically handles stale element references by re-finding elements
 - Returns to main page after completing each category
-- Filters out navigation and footer content from answers
-- Python 3.7+
-- requests
-- beautifulsoup4
-
-## Notes
-
-- The scraper includes a 1-second delay between category requests to be respectful to the server
-- User-Agent header is set to avoid blocking
-- Timeout is set to 10 seconds for each request
 
 ## License
 
